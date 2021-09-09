@@ -11,7 +11,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// +kubebuilder:webhook:path=/validate-v1-project,mutating=false,failurePolicy=fail,groups="project.openshift.io",resources=projects,verbs=create,versions=v1,name=vproject.kb.io,sideEffects=none,admissionReviewVersions=v1
+// +kubebuilder:webhook:path=/validate-v1-project,mutating=false,failurePolicy=fail,groups=project.openshift.io,resources=projects,verbs=create,versions=v1,name=vproject.kb.io,sideEffects=none,admissionReviewVersions=v1
+// +kubebuilder:rbac:groups=project.openshift.io,resources=projects,verbs=get;list;watch
 
 // ProjectRequestLimitsValidator
 type ProjectRequestLimitsValidator struct {
