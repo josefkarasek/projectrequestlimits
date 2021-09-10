@@ -1,0 +1,116 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.8.0+git
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
+  name: projectrequestlimits.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions: {}
+  description: projectrequestlimits
+  displayName: projectrequestlimits
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - project.openshift.io
+          resources:
+          - projects
+          verbs:
+          - get
+          - list
+          - watch
+        serviceAccountName: projectrequestlimits-controller-manager
+      deployments:
+      - name: projectrequestlimits-controller-manager
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              control-plane: controller-manager
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                control-plane: controller-manager
+            spec:
+              containers:
+              - command:
+                - /manager
+                image: quay.io/josefkarasek/projectrequestlimits:v0.0.1
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 8081
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+                name: manager
+                ports:
+                - containerPort: 9443
+                  name: webhook-service
+                  protocol: TCP
+                readinessProbe:
+                  httpGet:
+                    path: /readyz
+                    port: 8081
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                resources:
+                  limits:
+                    cpu: 100m
+                    memory: 30Mi
+                  requests:
+                    cpu: 100m
+                    memory: 20Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+              securityContext:
+                runAsNonRoot: true
+              serviceAccountName: projectrequestlimits-controller-manager
+              terminationGracePeriodSeconds: 10
+    strategy: deployment
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - test
+  links:
+  - name: Projectrequestlimits
+    url: https://projectrequestlimits.domain
+  maturity: alpha
+  provider:
+    name: jkarasek.com
+  version: 0.0.1
+  webhookdefinitions:
+  - admissionReviewVersions:
+    - v1
+    deploymentName: projectrequestlimits-controller-manager
+    failurePolicy: Fail
+    generateName: vproject.kb.io
+    containerPort: 9443
+    rules:
+    - apiGroups:
+      - project.openshift.io
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      resources:
+      - projects
+    sideEffects: None
+    type: ValidatingAdmissionWebhook
+    webhookPath: /validate-v1-project
